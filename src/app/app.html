@@ -1,125 +1,136 @@
-<div class="container py-4">
+<div class="bg-primary text-white py-4 mb-4">
+  <div class="container text-center">
+    <h1>🌤️ WeatherHub — Chato</h1>
+    <p class="mb-0">Elevación · Marine · Histórico</p>
+  </div>
+</div>
 
-  <h1>WeatherHub</h1>
-  <p>Sección de Chato - Métodos 4, 5 y 6</p>
+<div class="container pb-5">
 
-  <hr>
-
-  <!-- CIUDAD -->
-
-  <h2>Ciudad</h2>
-
-  <p>
-    <strong>Nombre:</strong>
-    {{ city?.name }}
-  </p>
-
-  <p>
-    <strong>País:</strong>
-    {{ city?.country }}
-  </p>
-
-  <p>
-    <strong>Latitud:</strong>
-    {{ city?.latitude }}
-  </p>
-
-  <p>
-    <strong>Longitud:</strong>
-    {{ city?.longitude }}
-  </p>
-
-  <hr>
-
-
-  <!-- MÉTODO 4 -->
-
-  <h2>Método 4 - Elevación</h2>
-
-  <p>
-    <strong>Elevación:</strong>
-    {{ elevation?.elevation?.[0] }} m
-  </p>
-
-  <hr>
-
-
-  <!-- MÉTODO 5 -->
-
-  <h2>Método 5 - Información marina</h2>
-
-  <p>
-    <strong>Altura de ola:</strong>
-    {{ marine?.hourly?.wave_height?.[0] }} m
-  </p>
-
-  <p>
-    <strong>Dirección de ola:</strong>
-    {{ marine?.hourly?.wave_direction?.[0] }} °
-  </p>
-
-  <p>
-    <strong>Periodo de ola:</strong>
-    {{ marine?.hourly?.wave_period?.[0] }} s
-  </p>
-
-  <hr>
-
-
-  <!-- MÉTODO 6 -->
-
-  <h2>Método 6 - Clima histórico</h2>
-
-  <p>
-    <strong>Fecha inicial:</strong>
-    {{ startDate }}
-  </p>
-
-  <p>
-    <strong>Fecha final:</strong>
-    {{ endDate }}
-  </p>
-
-  <button
-    type="button"
-    class="btn btn-primary"
-    (click)="loadHistorical()"
-  >
-    Consultar histórico
-  </button>
-
-  <hr>
-
-
-  <!-- DATOS HISTÓRICOS -->
-
-  <h3>Resultados históricos</h3>
-
-  <div *ngFor="let day of getHistoricalDays()">
-
-    <p>
-      <strong>Fecha:</strong>
-      {{ day.date }}
-    </p>
-
-    <p>
-      Máxima: {{ day.max }} °C
-    </p>
-
-    <p>
-      Mínima: {{ day.min }} °C
-    </p>
-
-    <p>
-      Lluvia: {{ day.precipitation }} mm
-    </p>
-
-    <p>
-      Viento máximo: {{ day.wind }} km/h
-    </p>
-
-    <hr>
-
+  <!-- BÚSQUEDA -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-9">
+          <input
+            class="form-control"
+            [(ngModel)]="cityName"
+            placeholder="Buscar ciudad"
+            (keyup.enter)="searchCity()">
+        </div>
+        <div class="col-md-3">
+          <button
+            class="btn btn-primary w-100"
+            (click)="searchCity()">
+            🔎 Buscar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
+  @if (city) {
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <h3>{{ city.name }}</h3>
+        <p class="mb-0 text-secondary">
+          {{ city.country }} · {{ city.latitude }}°, {{ city.longitude }}°
+        </p>
+      </div>
+    </div>
+
+    <!-- MÉTODO 4 -->
+    @if (elevation) {
+      <div class="card mb-4 text-center">
+        <div class="card-body">
+          <span class="badge bg-primary">MÉTODO 4</span>
+          <h3>⛰️ Elevación</h3>
+          <div class="display-4 fw-bold">
+            {{ elevation.elevation?.[0] }} m
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- MÉTODO 5 -->
+    @if (marine) {
+      <div class="card mb-4">
+        <div class="card-body">
+          <span class="badge bg-info">MÉTODO 5</span>
+          <h3>🌊 Información marina</h3>
+
+          <div class="row text-center g-3">
+            <div class="col-md-4">
+              <strong>🌊 Altura</strong>
+              <div>{{ marine.hourly?.wave_height?.[0] ?? 'N/D' }} m</div>
+            </div>
+
+            <div class="col-md-4">
+              <strong>🧭 Dirección</strong>
+              <div>{{ marine.hourly?.wave_direction?.[0] ?? 'N/D' }}°</div>
+            </div>
+
+            <div class="col-md-4">
+              <strong>⏱️ Periodo</strong>
+              <div>{{ marine.hourly?.wave_period?.[0] ?? 'N/D' }} s</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- MÉTODO 6 -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <span class="badge bg-dark">MÉTODO 6</span>
+        <h3>📅 Clima histórico</h3>
+
+        <div class="row g-2 mb-3">
+          <div class="col-md-5">
+            <input
+              class="form-control"
+              type="date"
+              [(ngModel)]="startDate">
+          </div>
+
+          <div class="col-md-5">
+            <input
+              class="form-control"
+              type="date"
+              [(ngModel)]="endDate">
+          </div>
+
+          <div class="col-md-2">
+            <button
+              class="btn btn-dark w-100"
+              (click)="loadHistorical()">
+              Consultar
+            </button>
+          </div>
+        </div>
+
+        @if (historical) {
+          <div class="row g-2">
+            @for (day of getHistoricalDays(); track day.date) {
+              <div class="col-md-4">
+                <div class="border rounded p-3">
+                  <strong>📅 {{ day.date }}</strong>
+                  <hr>
+                  <div>🌡️ Máx: {{ day.max }} °C</div>
+                  <div>🥶 Mín: {{ day.min }} °C</div>
+                  <div>🌧️ Lluvia: {{ day.precipitation }} mm</div>
+                  <div>💨 Viento: {{ day.wind }} km/h</div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+  }
+
 </div>
+
+<router-outlet />

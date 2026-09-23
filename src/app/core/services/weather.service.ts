@@ -1,33 +1,127 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { first, map, Observable } from 'rxjs';
-import { Elevation, MarineWeather, HistoricalWeather } from '../models/weather.model';
 
 import { City } from '../models/city.model';
-
-
+import {
+  CurrentWeather,
+  AirQuality,
+  Elevation,
+  MarineWeather,
+  HistoricalWeather
+} from '../models/weather.model';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
-
 export class WeatherService {
+
   private readonly http = inject(HttpClient);
 
-  // MÉTODO 4
+  private readonly URL_GEOCODING =
+    'https://geocoding-api.open-meteo.com/v1/search';
+
+  private readonly URL_FORECAST =
+    'https://api.open-meteo.com/v1/forecast';
+
+  private readonly URL_AIR =
+    'https://air-quality-api.open-meteo.com/v1/air-quality';
+
   private readonly URL_ELEVATION =
     'https://api.open-meteo.com/v1/elevation';
 
-  // MÉTODO 5
   private readonly URL_MARINE =
     'https://marine-api.open-meteo.com/v1/marine';
 
-  // MÉTODO 6
   private readonly URL_HISTORICAL =
     'https://archive-api.open-meteo.com/v1/archive';
 
-  // MÉTODO 4: elevación de una ciudad seleccionada
+
+  // MÉTODO 1 — CIUDADES
+
+  getCities(name: string): Observable<City[]> {
+
+    const params = new HttpParams()
+      .set('name', name)
+      .set('count', '5')
+      .set('language', 'es')
+      .set('format', 'json');
+
+    return this.http
+      .get<{ results?: City[] }>(this.URL_GEOCODING, { params })
+      .pipe(
+        first(),
+        map(data => data.results ?? [])
+      );
+  }
+
+
+  // MÉTODO 2 — CLIMA ACTUAL
+
+  getCurrentWeather(
+    lat: number,
+    lon: number
+  ): Observable<CurrentWeather> {
+
+    const params = new HttpParams()
+      .set('latitude', lat)
+      .set('longitude', lon)
+      .set(
+        'current',
+        'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m,is_day'
+      )
+      .set('timezone', 'auto');
+
+    return this.http
+      .get<any>(this.URL_FORECAST, { params })
+      .pipe(
+        first(),
+        map(data => ({
+          time: data.current.time,
+          temperature: data.current.temperature_2m,
+          apparentTemperature: data.current.apparent_temperature,
+          humidity: data.current.relative_humidity_2m,
+          precipitation: data.current.precipitation,
+          weatherCode: data.current.weather_code,
+          windSpeed: data.current.wind_speed_10m,
+          windDirection: data.current.wind_direction_10m,
+          isDay: data.current.is_day === 1
+        }))
+      );
+  }
+
+
+  // MÉTODO 3 — CALIDAD DEL AIRE
+
+  getAirQuality(
+    lat: number,
+    lon: number
+  ): Observable<AirQuality> {
+
+    const params = new HttpParams()
+      .set('latitude', lat)
+      .set('longitude', lon)
+      .set('current', 'pm2_5,pm10,european_aqi')
+      .set('timezone', 'auto');
+
+    return this.http
+      .get<any>(this.URL_AIR, { params })
+      .pipe(
+        first(),
+        map(data => ({
+          time: data.current.time,
+          pm2_5: data.current.pm2_5,
+          pm10: data.current.pm10,
+          europeanAqi: data.current.european_aqi
+        }))
+      );
+  }
+
+
+  // MÉTODO 4 — ELEVACIÓN
+
   getElevation(city: City): Observable<Elevation> {
+
     const params = new HttpParams()
       .set('latitude', city.latitude)
       .set('longitude', city.longitude);
@@ -37,8 +131,11 @@ export class WeatherService {
       .pipe(first());
   }
 
-  // MÉTODO 5: información marina de una ciudad seleccionada
+
+  // MÉTODO 5 — MARINE
+
   getMarineWeather(city: City): Observable<MarineWeather> {
+
     const params = new HttpParams()
       .set('latitude', city.latitude)
       .set('longitude', city.longitude)
@@ -50,12 +147,15 @@ export class WeatherService {
       .pipe(first());
   }
 
-  // MÉTODO 6: clima histórico
+
+  // MÉTODO 6 — HISTÓRICO
+
   getHistoricalWeather(
     city: City,
     startDate: string,
     endDate: string
   ): Observable<HistoricalWeather> {
+
     const params = new HttpParams()
       .set('latitude', city.latitude)
       .set('longitude', city.longitude)
@@ -71,4 +171,5 @@ export class WeatherService {
       .get<HistoricalWeather>(this.URL_HISTORICAL, { params })
       .pipe(first());
   }
+
 }
