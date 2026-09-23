@@ -1,32 +1,118 @@
 <!-- ===== SECCIÓN ALAN ===== -->
-<div class="container py-4">
-  <h2 class="fw-bold">🌤️ Clima — Alan</h2>
+<div class="bg-primary bg-gradient text-white py-5 mb-4">
+  <div class="container text-center">
+    <h1 class="fw-bold display-5 mb-1"><i class="bi bi-cloud-sun-fill"></i> Clima — Alan</h1>
+    <p class="mb-0 opacity-75">Ciudad + clima actual + calidad del aire</p>
+  </div>
+</div>
 
-  <div class="row g-3 mb-3">
-    <div class="col-md-9">
-      <input class="form-control" type="text" [(ngModel)]="alanCityName"
-        placeholder="Ej. Monterrey" (keyup.enter)="searchAlan()">
-    </div>
-    <div class="col-md-3">
-      <button class="btn btn-primary w-100" (click)="searchAlan()">Buscar</button>
+<div class="container pb-5">
+
+  <div class="card shadow border-0 mb-4">
+    <div class="card-body p-4">
+      <div class="row g-3">
+        <div class="col-md-9">
+          <label class="form-label fw-semibold">Buscar ciudad</label>
+          <div class="input-group input-group-lg">
+            <span class="input-group-text bg-white"><i class="bi bi-geo-alt-fill text-primary"></i></span>
+            <input class="form-control" type="text" [(ngModel)]="alanCityName"
+              placeholder="Ej. Monterrey" (keyup.enter)="searchAlan()">
+          </div>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button class="btn btn-primary btn-lg w-100" (click)="searchAlan()" [disabled]="alanLoading">
+            @if (alanLoading) {
+              <span class="spinner-border spinner-border-sm me-2"></span> Buscando...
+            } @else {
+              <i class="bi bi-search"></i> Buscar
+            }
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
-  @if (alanLoading) {
-    <p>Cargando...</p>
-  }
-
   @if (alanError) {
-    <div class="alert alert-danger">{{ alanError }}</div>
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ alanError }}
+    </div>
   }
 
   @if (alanCity && alanWeather) {
-    <h3>{{ alanCity.name }}, {{ alanCity.country }}</h3>
-    <p class="display-4">{{ alanWeather.temperature }}°C</p>
-    <p>Sensación: {{ alanWeather.apparentTemperature }}°C · Humedad: {{ alanWeather.humidity }}%</p>
+
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-body">
+        <h3 class="fw-bold mb-0"><i class="bi bi-pin-map-fill text-primary"></i> {{ alanCity.name }}</h3>
+        <p class="text-secondary mb-0">
+          {{ alanCity.country }} @if (alanCity.admin1) { · {{ alanCity.admin1 }} }
+          · {{ alanCity.latitude }}°, {{ alanCity.longitude }}°
+        </p>
+      </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4 bg-primary bg-gradient text-white">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-thermometer-half display-3"></i>
+        <div class="display-1 fw-bold">{{ alanWeather.temperature }}°C</div>
+        <p class="lead mb-0">Sensación térmica: {{ alanWeather.apparentTemperature }}°C</p>
+
+        @if (alanWeather.isDay) {
+          <span class="badge bg-warning text-dark mt-2"><i class="bi bi-sun-fill"></i> Día</span>
+        } @else {
+          <span class="badge bg-dark mt-2"><i class="bi bi-moon-stars-fill"></i> Noche</span>
+        }
+      </div>
+
+      <div class="row g-0 border-top border-white border-opacity-25 text-center">
+        <div class="col-6 col-md-3 py-3 border-end border-white border-opacity-25">
+          <i class="bi bi-droplet-fill fs-4"></i>
+          <div class="small opacity-75">Humedad</div>
+          <div class="fw-bold fs-5">{{ alanWeather.humidity }}%</div>
+        </div>
+        <div class="col-6 col-md-3 py-3 border-end border-white border-opacity-25">
+          <i class="bi bi-wind fs-4"></i>
+          <div class="small opacity-75">Viento</div>
+          <div class="fw-bold fs-5">{{ alanWeather.windSpeed }} km/h</div>
+        </div>
+        <div class="col-6 col-md-3 py-3 border-end border-white border-opacity-25">
+          <i class="bi bi-cloud-rain-fill fs-4"></i>
+          <div class="small opacity-75">Precipitación</div>
+          <div class="fw-bold fs-5">{{ alanWeather.precipitation }} mm</div>
+        </div>
+        <div class="col-6 col-md-3 py-3">
+          <i class="bi bi-compass-fill fs-4"></i>
+          <div class="small opacity-75">Dirección</div>
+          <div class="fw-bold fs-5">{{ alanWeather.windDirection }}°</div>
+        </div>
+      </div>
+    </div>
 
     @if (alanAir) {
-      <p>PM2.5: {{ alanAir.pm2_5 }} · PM10: {{ alanAir.pm10 }} · AQI europeo: {{ alanAir.europeanAqi }}</p>
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <h4 class="fw-bold mb-3"><i class="bi bi-wind text-info"></i> Calidad del aire</h4>
+          <div class="row g-3 text-center">
+            <div class="col-4">
+              <div class="p-3 rounded-3 bg-light">
+                <div class="text-secondary small">PM2.5</div>
+                <div class="fs-3 fw-bold text-primary">{{ alanAir.pm2_5 }}</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-3 rounded-3 bg-light">
+                <div class="text-secondary small">PM10</div>
+                <div class="fs-3 fw-bold text-primary">{{ alanAir.pm10 }}</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-3 rounded-3 bg-light">
+                <div class="text-secondary small">AQI europeo</div>
+                <div class="fs-3 fw-bold text-primary">{{ alanAir.europeanAqi }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     }
   }
 </div>
