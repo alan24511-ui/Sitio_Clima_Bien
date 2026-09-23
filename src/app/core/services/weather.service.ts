@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { first, Observable } from 'rxjs';
+import { first, map, Observable } from 'rxjs';
 import { Elevation, MarineWeather, HistoricalWeather } from '../models/weather.model';
 
 import { City } from '../models/city.model';
@@ -10,6 +10,7 @@ import { City } from '../models/city.model';
 @Injectable({
   providedIn: 'root',
 })
+
 export class WeatherService {
   private readonly http = inject(HttpClient);
 
