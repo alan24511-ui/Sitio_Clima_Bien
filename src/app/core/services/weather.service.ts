@@ -11,9 +11,9 @@ import { AirQuality } from '../models/weather.model';
 export class WeatherService {
   private readonly http = inject(HttpClient);
 
-  private readonly URL_GEOCODING = 'https://geocoding-api.open-meteo.com/v1/search';
-  private readonly URL_FORECAST = 'https://api.open-meteo.com/v1/forecast';
-  private readonly URL_AIR_QUALITY = 'https://air-quality-api.open-meteo.com/v1/air-quality';
+private readonly URL_GEOCODING = 'https://geocoding-api.open-meteo.com/v1/search';
+private readonly URL_FORECAST = 'https://api.open-meteo.com/v1/forecast';
+private readonly URL_AIR_QUALITY = 'https://air-quality-api.open-meteo.com/v1/air-quality';
 
   // MÉTODO 1: nombre de ciudad -> lista de coincidencias con coordenadas
   getCities(name: string): Observable<City[]> {
