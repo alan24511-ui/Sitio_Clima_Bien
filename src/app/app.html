@@ -1,209 +1,206 @@
-<!-- ===== SECCIÓN ALAN ===== -->
-<div class="bg-primary bg-gradient text-white py-5 mb-4">
+<div class="bg-primary text-white py-4 mb-4">
   <div class="container text-center">
-    <h1 class="fw-bold display-5 mb-1"><i class="bi bi-cloud-sun-fill"></i> Clima — Alan</h1>
-    <p class="mb-0 opacity-75">Ciudad + clima actual + calidad del aire</p>
+    <h1>🌤️ WeatherHub</h1> <!-- CORREGIDO AQUÍ -->
+    <p class="mb-0">Pronóstico histórico · ECMWF</p>
   </div>
 </div>
 
 <div class="container pb-5">
 
-  <div class="card shadow border-0 mb-4">
-    <div class="card-body p-4">
-      <div class="row g-3">
+  <!-- BÚSQUEDA -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-2">
+
         <div class="col-md-9">
-          <label class="form-label fw-semibold">Buscar ciudad</label>
-          <div class="input-group input-group-lg">
-            <span class="input-group-text bg-white"><i class="bi bi-geo-alt-fill text-primary"></i></span>
-            <input class="form-control" type="text" [(ngModel)]="alanCityName"
-              placeholder="Ej. Monterrey" (keyup.enter)="searchAlan()">
-          </div>
+          <input
+            class="form-control"
+            [(ngModel)]="cityName"
+            placeholder="Buscar ciudad"
+            (keyup.enter)="searchCity()">
         </div>
-        <div class="col-md-3 d-flex align-items-end">
-          <button class="btn btn-primary btn-lg w-100" (click)="searchAlan()" [disabled]="alanLoading">
-            @if (alanLoading) {
-              <span class="spinner-border spinner-border-sm me-2"></span> Buscando...
-            } @else {
-              <i class="bi bi-search"></i> Buscar
-            }
+
+        <div class="col-md-3">
+          <button
+            class="btn btn-primary w-100"
+            (click)="searchCity()">
+            🔎 Buscar
           </button>
         </div>
+
       </div>
     </div>
   </div>
 
-  @if (alanError) {
-    <div class="alert alert-danger d-flex align-items-center gap-2">
-      <i class="bi bi-exclamation-triangle-fill"></i> {{ alanError }}
-    </div>
-  }
+  @if (city) {
 
-  @if (alanCity && alanWeather) {
-    <div class="card shadow-sm border-0 mb-4">
+    <!-- CIUDAD -->
+    <div class="card mb-4">
       <div class="card-body">
-        <h3 class="fw-bold mb-0"><i class="bi bi-pin-map-fill text-primary"></i> {{ alanCity.name }}</h3>
-        <p class="text-secondary mb-0">
-          {{ alanCity.country }} @if (alanCity.admin1) { · {{ alanCity.admin1 }} }
-          · {{ alanCity.latitude }}°, {{ alanCity.longitude }}°
+        <h3>{{ city.name }}</h3>
+        <p class="mb-0 text-secondary">
+          {{ city.country }} · {{ city.latitude }}°, {{ city.longitude }}°
         </p>
       </div>
     </div>
 
-    <div class="card shadow-sm border-0 mb-4 bg-primary bg-gradient text-white">
-      <div class="card-body text-center py-5">
-        <i class="bi bi-thermometer-half display-3"></i>
-        <div class="display-1 fw-bold">{{ alanWeather.temperature }}°C</div>
-        <p class="lead mb-0">Sensación térmica: {{ alanWeather.apparentTemperature }}°C</p>
-
-        @if (alanWeather.isDay) {
-          <span class="badge bg-warning text-dark mt-2"><i class="bi bi-sun-fill"></i> Día</span>
-        } @else {
-          <span class="badge bg-dark mt-2"><i class="bi bi-moon-stars-fill"></i> Noche</span>
-        }
-      </div>
-
-      <div class="row g-0 border-top border-white border-opacity-25 text-center">
-        <div class="col-6 col-md-3 py-3 border-end border-white border-opacity-25">
-          <i class="bi bi-droplet-fill fs-4"></i>
-          <div class="small opacity-75">Humedad</div>
-          <div class="fw-bold fs-5">{{ alanWeather.humidity }}%</div>
-        </div>
-        <div class="col-6 col-md-3 py-3 border-end border-white border-opacity-25">
-          <i class="bi bi-wind fs-4"></i>
-          <div class="small opacity-75">Viento</div>
-          <div class="fw-bold fs-5">{{ alanWeather.windSpeed }} km/h</div>
-        </div>
-        <div class="col-6 col-md-3 py-3 border-end border-white border-opacity-25">
-          <i class="bi bi-cloud-rain-fill fs-4"></i>
-          <div class="small opacity-75">Precipitación</div>
-          <div class="fw-bold fs-5">{{ alanWeather.precipitation }} mm</div>
-        </div>
-        <div class="col-6 col-md-3 py-3">
-          <i class="bi bi-compass-fill fs-4"></i>
-          <div class="small opacity-75">Dirección</div>
-          <div class="fw-bold fs-5">{{ alanWeather.windDirection }}°</div>
-        </div>
-      </div>
-    </div>
-
-    @if (alanAir) {
-      <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-          <h4 class="fw-bold mb-3"><i class="bi bi-wind text-info"></i> Calidad del aire</h4>
-          <div class="row g-3 text-center">
-            <div class="col-4">
-              <div class="p-3 rounded-3 bg-light">
-                <div class="text-secondary small">PM2.5</div>
-                <div class="fs-3 fw-bold text-primary">{{ alanAir.pm2_5 }}</div>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="p-3 rounded-3 bg-light">
-                <div class="text-secondary small">PM10</div>
-                <div class="fs-3 fw-bold text-primary">{{ alanAir.pm10 }}</div>
-              </div>
-            </div>
-            <div class="col-4">
-              <div class="p-3 rounded-3 bg-light">
-                <div class="text-secondary small">AQI europeo</div>
-                <div class="fs-3 fw-bold text-primary">{{ alanAir.europeanAqi }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    }
-  }
-</div>
-<!-- ===== FIN SECCIÓN ALAN ===== -->
-
-<!-- ===== SECCIÓN CHATO ===== -->
-<div class="bg-dark text-white py-4 mb-4">
-  <div class="container text-center">
-    <h1>🌤️ WeatherHub — Chato</h1>
-    <p class="mb-0">Elevación · Marine · Histórico</p>
-  </div>
-</div>
-
-<div class="container pb-5">
-
-  <div class="card mb-4">
-    <div class="card-body">
-      <div class="row g-2">
-        <div class="col-md-9">
-          <input class="form-control" [(ngModel)]="chatoCityName" placeholder="Buscar ciudad"
-            (keyup.enter)="searchChato()">
-        </div>
-        <div class="col-md-3">
-          <button class="btn btn-dark w-100" (click)="searchChato()">🔎 Buscar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  @if (chatoCity) {
+    <!-- MÉTODO 7 — PRONÓSTICO HISTÓRICO -->
     <div class="card mb-4">
       <div class="card-body">
-        <h3>{{ chatoCity.name }}</h3>
-        <p class="mb-0 text-secondary">{{ chatoCity.country }} · {{ chatoCity.latitude }}°, {{ chatoCity.longitude }}°</p>
-      </div>
-    </div>
 
-    @if (elevation) {
-      <div class="card mb-4 text-center">
-        <div class="card-body">
-          <span class="badge bg-primary">MÉTODO 4</span>
-          <h3>⛰️ Elevación</h3>
-          <div class="display-4 fw-bold">{{ elevation.elevation?.[0] }} m</div>
-        </div>
-      </div>
-    }
-
-    @if (marine) {
-      <div class="card mb-4">
-        <div class="card-body">
-          <span class="badge bg-info">MÉTODO 5</span>
-          <h3>🌊 Información marina</h3>
-          <div class="row text-center g-3">
-            <div class="col-md-4"><strong>🌊 Altura</strong><div>{{ marine.hourly?.wave_height?.[0] ?? 'N/D' }} m</div></div>
-            <div class="col-md-4"><strong>🧭 Dirección</strong><div>{{ marine.hourly?.wave_direction?.[0] ?? 'N/D' }}°</div></div>
-            <div class="col-md-4"><strong>⏱️ Periodo</strong><div>{{ marine.hourly?.wave_period?.[0] ?? 'N/D' }} s</div></div>
-          </div>
-        </div>
-      </div>
-    }
-
-    <div class="card mb-4">
-      <div class="card-body">
-        <span class="badge bg-dark">MÉTODO 6</span>
-        <h3>📅 Clima histórico</h3>
+        <span class="badge bg-warning text-dark">MÉTODO 7</span>
+        <h3>🔮 Pronóstico histórico</h3>
 
         <div class="row g-2 mb-3">
-          <div class="col-md-5"><input class="form-control" type="date" [(ngModel)]="startDate"></div>
-          <div class="col-md-5"><input class="form-control" type="date" [(ngModel)]="endDate"></div>
-          <div class="col-md-2"><button class="btn btn-dark w-100" (click)="loadHistorical()">Consultar</button></div>
+
+          <div class="col-md-5">
+            <input
+              class="form-control"
+              type="date"
+              [(ngModel)]="startDate">
+          </div>
+
+          <div class="col-md-5">
+            <input
+              class="form-control"
+              type="date"
+              [(ngModel)]="endDate">
+          </div>
+
+          <div class="col-md-2">
+            <button
+              class="btn btn-warning w-100"
+              (click)="loadHistoricalForecast()">
+              Consultar
+            </button>
+          </div>
+
         </div>
 
-        @if (historical) {
+        @if (historicalForecast) {
+
           <div class="row g-2">
-            @for (day of getHistoricalDays(); track day.date) {
+
+            @for (
+              hour of getHistoricalForecastHours();
+              track hour.time
+            ) {
+
               <div class="col-md-4">
+
                 <div class="border rounded p-3">
-                  <strong>📅 {{ day.date }}</strong>
+
+                  <strong>🕐 {{ hour.time }}</strong>
                   <hr>
-                  <div>🌡️ Máx: {{ day.max }} °C</div>
-                  <div>🥶 Mín: {{ day.min }} °C</div>
-                  <div>🌧️ Lluvia: {{ day.precipitation }} mm</div>
-                  <div>💨 Viento: {{ day.wind }} km/h</div>
+
+                  <div>
+                    🌡️ Temperatura:
+                    {{ hour.temperature ?? 'N/D' }} °C
+                  </div>
+
+                  <div>
+                    💧 Humedad:
+                    {{ hour.humidity ?? 'N/D' }} %
+                  </div>
+
+                  <div>
+                    🌧️ Precipitación:
+                    {{ hour.precipitation ?? 'N/D' }} mm
+                  </div>
+
+                  <div>
+                    🌤️ Código:
+                    {{ hour.weatherCode ?? 'N/D' }}
+                  </div>
+
+                  <div>
+                    💨 Viento:
+                    {{ hour.wind ?? 'N/D' }} km/h
+                  </div>
+
+                  <div>
+                    🧭 Dirección:
+                    {{ hour.windDirection ?? 'N/D' }}°
+                  </div>
+
                 </div>
+
               </div>
+
             }
+
           </div>
+
         }
+
+      </div>
+    </div>
+
+    <!-- MÉTODO 8 — ECMWF -->
+    <div class="card mb-4">
+      <div class="card-body">
+
+        <span class="badge bg-success">MÉTODO 8</span>
+        <h3>🌍 Pronóstico ECMWF</h3>
+
+        @if (ecmwf) {
+
+          <div class="row g-2">
+
+            @for (
+              hour of getECMWFHours();
+              track hour.time
+            ) {
+
+              <div class="col-md-4">
+
+                <div class="border rounded p-3">
+
+                  <strong>🕐 {{ hour.time }}</strong>
+                  <hr>
+
+                  <div>
+                    🌡️ Temperatura:
+                    {{ hour.temperature ?? 'N/D' }} °C
+                  </div>
+
+                  <div>
+                    💧 Humedad:
+                    {{ hour.humidity ?? 'N/D' }} %
+                  </div>
+
+                  <div>
+                    🌧️ Precipitación:
+                    {{ hour.precipitation ?? 'N/D' }} mm
+                  </div>
+
+                  <div>
+                    🌤️ Código:
+                    {{ hour.weatherCode ?? 'N/D' }}
+                  </div>
+
+                  <div>
+                    💨 Viento:
+                    {{ hour.wind ?? 'N/D' }} km/h
+                  </div>
+
+                  <div>
+                    🧭 Dirección:
+                    {{ hour.windDirection ?? 'N/D' }}°
+                  </div>
+
+                </div>
+
+              </div>
+
+            }
+
+          </div>
+
+        }
+
       </div>
     </div>
   }
+  
 </div>
-<!-- ===== FIN SECCIÓN CHATO ===== -->
-
-<router-outlet />

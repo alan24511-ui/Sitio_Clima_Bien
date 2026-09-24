@@ -1,193 +1,130 @@
-import { Component, inject, ChangeDetectorRef } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RouterOutlet } from '@angular/router';
 import { WeatherService } from './core/services/weather.service';
-import { City } from './core/models/city.model';
-import { CurrentWeather, AirQuality } from './core/models/weather.model';
-import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, FormsModule, CommonModule],
-  templateUrl: './app.html',
+  imports: [FormsModule, CommonModule, RouterOutlet],
+  templateUrl: './app.html'
 })
 export class App {
   private weatherService = inject(WeatherService);
-  private cdr = inject(ChangeDetectorRef);
 
-  // =========================================================
-  // =========================================================
-  // INICIO SECCIÓN ALAN
-  // MÉTODOS: getCities, getCurrentWeather, getAirQuality
-  // =========================================================
-  // =========================================================
-
-  alanCityName = 'Monterrey';
-  alanCity?: City;
-  alanWeather?: CurrentWeather;
-  alanAir?: AirQuality;
-  alanLoading = false;
-  alanError = '';
-
-  searchAlan() {
-    this.alanLoading = true;
-    this.alanError = '';
-    this.alanCity = undefined;
-    this.alanWeather = undefined;
-    this.alanAir = undefined;
-
-    this.weatherService.getCities(this.alanCityName).subscribe({
-      next: (cities) => {
-        if (!cities.length) {
-          this.alanError = 'Ciudad no encontrada';
-          this.alanLoading = false;
-          this.cdr.detectChanges();
-          return;
-        }
-
-        this.alanCity = cities[0];
-
-        forkJoin({
-          weather: this.weatherService.getCurrentWeather(this.alanCity.latitude, this.alanCity.longitude),
-          air: this.weatherService.getAirQuality(this.alanCity.latitude, this.alanCity.longitude),
-        }).subscribe({
-          next: (result) => {
-            this.alanWeather = result.weather;
-            this.alanAir = result.air;
-            this.alanLoading = false;
-            this.cdr.detectChanges();
-          },
-          error: () => {
-            this.alanError = 'Error al obtener el clima o la calidad del aire';
-            this.alanLoading = false;
-            this.cdr.detectChanges();
-          },
-        });
-      },
-      error: () => {
-        this.alanError = 'Error al buscar la ciudad';
-        this.alanLoading = false;
-        this.cdr.detectChanges();
-      },
-    });
-  }
-
-  // =========================================================
-  // =========================================================
-  // FIN SECCIÓN ALAN
-  // =========================================================
-  // =========================================================
-
-
-  // =========================================================
-  // =========================================================
-  // INICIO SECCIÓN CHATO
-  // MÉTODOS 4, 5 Y 6: getElevation, getMarineWeather, getHistoricalWeather
-  // =========================================================
-  // =========================================================
-
-  chatoCityName = 'Monterrey';
-  chatoCity: any = null;
-  chatoLoading = false;
+  cityName = 'Monterrey';
+  city: any = null;
+  loading = false;
 
   elevation: any = null;
   marine: any = null;
   historical: any = null;
+  historicalForecast: any = null;
+  ecmwf: any = null;
+
   startDate = '2026-09-15';
   endDate = '2026-09-20';
 
-  // ---------------------------------------------------------
-  // BÚSQUEDA DE CIUDAD (Chato)
-  // ---------------------------------------------------------
+  // MÉTODO 1 — CIUDADES
+  searchCity() {
+    if (!this.cityName.trim()) return;
 
-  searchChato() {
-    if (!this.chatoCityName.trim()) {
-      return;
-    }
+    this.loading = true;
 
-    this.chatoLoading = true;
-
-    this.weatherService.getCities(this.chatoCityName).subscribe({
-      next: (cities) => {
+    this.weatherService.getCities(this.cityName).subscribe({
+      next: cities => {
         if (!cities.length) {
-          this.chatoCity = null;
+          this.city = null;
           this.elevation = null;
           this.marine = null;
           this.historical = null;
-          this.chatoLoading = false;
+          this.historicalForecast = null;
+          this.ecmwf = null;
+          this.loading = false;
           return;
         }
 
-        this.chatoCity = cities[0];
+        this.city = cities[0];
         this.elevation = null;
         this.marine = null;
         this.historical = null;
+        this.historicalForecast = null;
+        this.ecmwf = null;
 
         this.loadChatoWeather();
-        this.chatoLoading = false;
+        this.loading = false;
       },
-      error: (error) => {
+      error: error => {
         console.error('Error buscando ciudad:', error);
-        this.chatoCity = null;
-        this.chatoLoading = false;
-      },
+        this.city = null;
+        this.loading = false;
+      }
     });
   }
 
-  // ---------------------------------------------------------
   // MÉTODO 4 — ELEVACIÓN
-  // ---------------------------------------------------------
-
   loadElevation() {
-    if (!this.chatoCity) return;
+    if (!this.city) return;
 
-    this.weatherService.getElevation(this.chatoCity).subscribe({
-      next: (data) => (this.elevation = data),
-      error: (error) => console.error('Error en elevación:', error),
+    this.weatherService.getElevation(this.city).subscribe({
+      next: data => this.elevation = data,
+      error: error => console.error('Error en elevación:', error)
     });
   }
 
-  // ---------------------------------------------------------
-  // MÉTODO 5 — INFORMACIÓN MARINA
-  // ---------------------------------------------------------
-
+  // MÉTODO 5 — MARINE
   loadMarineWeather() {
-    if (!this.chatoCity) return;
+    if (!this.city) return;
 
-    this.weatherService.getMarineWeather(this.chatoCity).subscribe({
-      next: (data) => (this.marine = data),
-      error: (error) => console.error('Error en información marina:', error),
+    this.weatherService.getMarineWeather(this.city).subscribe({
+      next: data => this.marine = data,
+      error: error => console.error('Error en información marina:', error)
     });
   }
 
-  // ---------------------------------------------------------
-  // EJECUTAR MÉTODOS 4 Y 5 JUNTOS
-  // ---------------------------------------------------------
+  // MÉTODO 6 — CLIMA HISTÓRICO
+  loadHistorical() {
+    if (!this.city) return;
 
+    this.weatherService
+      .getHistoricalWeather(this.city, this.startDate, this.endDate)
+      .subscribe({
+        next: data => this.historical = data,
+        error: error => console.error('Error en clima histórico:', error)
+      });
+  }
+
+  // MÉTODO 7 — PRONÓSTICO HISTÓRICO
+  loadHistoricalForecast() {
+    if (!this.city) return;
+
+    this.weatherService
+      .getHistoricalForecast(this.city, this.startDate, this.endDate)
+      .subscribe({
+        next: data => this.historicalForecast = data,
+        error: error => console.error('Error en pronóstico histórico:', error)
+      });
+  }
+
+  // MÉTODO 8 — ECMWF
+  loadECMWF() {
+    if (!this.city) return;
+
+    this.weatherService.getECMWF(this.city).subscribe({
+      next: data => this.ecmwf = data,
+      error: error => console.error('Error en ECMWF:', error)
+    });
+  }
+
+  // EJECUTAR 4, 5 Y 8
   loadChatoWeather() {
     this.loadElevation();
     this.loadMarineWeather();
+    this.loadECMWF();
   }
 
-  // ---------------------------------------------------------
-  // MÉTODO 6 — CLIMA HISTÓRICO
-  // ---------------------------------------------------------
-
-  loadHistorical() {
-    if (!this.chatoCity) return;
-
-    this.weatherService.getHistoricalWeather(this.chatoCity, this.startDate, this.endDate).subscribe({
-      next: (data) => (this.historical = data),
-      error: (error) => console.error('Error en clima histórico:', error),
-    });
-  }
-
-  // ---------------------------------------------------------
-  // PROCESAR RESULTADOS DEL MÉTODO 6
-  // ---------------------------------------------------------
-
+  // PROCESAR MÉTODO 6
   getHistoricalDays() {
     if (!this.historical?.daily) return [];
 
@@ -198,13 +135,41 @@ export class App {
       max: daily.temperature_2m_max?.[i],
       min: daily.temperature_2m_min?.[i],
       precipitation: daily.precipitation_sum?.[i],
-      wind: daily.wind_speed_10m_max?.[i],
+      wind: daily.wind_speed_10m_max?.[i]
     }));
   }
 
-  // =========================================================
-  // =========================================================
-  // FIN SECCIÓN CHATO
-  // =========================================================
-  // =========================================================
+  // PROCESAR MÉTODO 7
+  getHistoricalForecastHours() {
+    if (!this.historicalForecast?.hourly) return [];
+
+    const hourly = this.historicalForecast.hourly;
+
+    return hourly.time.map((time: string, i: number) => ({
+      time,
+      temperature: hourly.temperature_2m?.[i],
+      humidity: hourly.relative_humidity_2m?.[i],
+      precipitation: hourly.precipitation?.[i],
+      weatherCode: hourly.weather_code?.[i],
+      wind: hourly.wind_speed_10m?.[i],
+      windDirection: hourly.wind_direction_10m?.[i]
+    }));
+  }
+
+  // PROCESAR MÉTODO 8
+  getECMWFHours() {
+    if (!this.ecmwf?.hourly) return [];
+
+    const hourly = this.ecmwf.hourly;
+
+    return hourly.time.map((time: string, i: number) => ({
+      time,
+      temperature: hourly.temperature_2m?.[i],
+      humidity: hourly.relative_humidity_2m?.[i],
+      precipitation: hourly.precipitation?.[i],
+      weatherCode: hourly.weather_code?.[i],
+      wind: hourly.wind_speed_10m?.[i],
+      windDirection: hourly.wind_direction_10m?.[i]
+    }));
+  }
 }
