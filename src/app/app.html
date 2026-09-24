@@ -39,7 +39,6 @@
   }
 
   @if (alanCity && alanWeather) {
-
     <div class="card shadow-sm border-0 mb-4">
       <div class="card-body">
         <h3 class="fw-bold mb-0"><i class="bi bi-pin-map-fill text-primary"></i> {{ alanCity.name }}</h3>
@@ -117,5 +116,94 @@
   }
 </div>
 <!-- ===== FIN SECCIÓN ALAN ===== -->
+
+<!-- ===== SECCIÓN CHATO ===== -->
+<div class="bg-dark text-white py-4 mb-4">
+  <div class="container text-center">
+    <h1>🌤️ WeatherHub — Chato</h1>
+    <p class="mb-0">Elevación · Marine · Histórico</p>
+  </div>
+</div>
+
+<div class="container pb-5">
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-9">
+          <input class="form-control" [(ngModel)]="chatoCityName" placeholder="Buscar ciudad"
+            (keyup.enter)="searchChato()">
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-dark w-100" (click)="searchChato()">🔎 Buscar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (chatoCity) {
+    <div class="card mb-4">
+      <div class="card-body">
+        <h3>{{ chatoCity.name }}</h3>
+        <p class="mb-0 text-secondary">{{ chatoCity.country }} · {{ chatoCity.latitude }}°, {{ chatoCity.longitude }}°</p>
+      </div>
+    </div>
+
+    @if (elevation) {
+      <div class="card mb-4 text-center">
+        <div class="card-body">
+          <span class="badge bg-primary">MÉTODO 4</span>
+          <h3>⛰️ Elevación</h3>
+          <div class="display-4 fw-bold">{{ elevation.elevation?.[0] }} m</div>
+        </div>
+      </div>
+    }
+
+    @if (marine) {
+      <div class="card mb-4">
+        <div class="card-body">
+          <span class="badge bg-info">MÉTODO 5</span>
+          <h3>🌊 Información marina</h3>
+          <div class="row text-center g-3">
+            <div class="col-md-4"><strong>🌊 Altura</strong><div>{{ marine.hourly?.wave_height?.[0] ?? 'N/D' }} m</div></div>
+            <div class="col-md-4"><strong>🧭 Dirección</strong><div>{{ marine.hourly?.wave_direction?.[0] ?? 'N/D' }}°</div></div>
+            <div class="col-md-4"><strong>⏱️ Periodo</strong><div>{{ marine.hourly?.wave_period?.[0] ?? 'N/D' }} s</div></div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <span class="badge bg-dark">MÉTODO 6</span>
+        <h3>📅 Clima histórico</h3>
+
+        <div class="row g-2 mb-3">
+          <div class="col-md-5"><input class="form-control" type="date" [(ngModel)]="startDate"></div>
+          <div class="col-md-5"><input class="form-control" type="date" [(ngModel)]="endDate"></div>
+          <div class="col-md-2"><button class="btn btn-dark w-100" (click)="loadHistorical()">Consultar</button></div>
+        </div>
+
+        @if (historical) {
+          <div class="row g-2">
+            @for (day of getHistoricalDays(); track day.date) {
+              <div class="col-md-4">
+                <div class="border rounded p-3">
+                  <strong>📅 {{ day.date }}</strong>
+                  <hr>
+                  <div>🌡️ Máx: {{ day.max }} °C</div>
+                  <div>🥶 Mín: {{ day.min }} °C</div>
+                  <div>🌧️ Lluvia: {{ day.precipitation }} mm</div>
+                  <div>💨 Viento: {{ day.wind }} km/h</div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+<!-- ===== FIN SECCIÓN CHATO ===== -->
 
 <router-outlet />
