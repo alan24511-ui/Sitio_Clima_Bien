@@ -7,7 +7,9 @@ import {
   AirQuality,
   Elevation,
   MarineWeather,
-  HistoricalWeather
+  HistoricalWeather,
+  HistoricalForecast,
+  ECMWFWeather
 } from '../models/weather.model';
 
 @Injectable({
@@ -22,6 +24,8 @@ export class WeatherService {
   private readonly URL_ELEVATION = 'https://api.open-meteo.com/v1/elevation';
   private readonly URL_MARINE = 'https://marine-api.open-meteo.com/v1/marine';
   private readonly URL_HISTORICAL = 'https://archive-api.open-meteo.com/v1/archive';
+  private readonly URL_HISTORICAL_FORECAST ='https://historical-forecast-api.open-meteo.com/v1/forecast';
+  private readonly URL_ECMWF =  'https://api.open-meteo.com/v1/ecmwf';
 
   // MÉTODO 1: nombre de ciudad -> lista de coincidencias con coordenadas
   getCities(name: string): Observable<City[]> {
@@ -141,4 +145,56 @@ export class WeatherService {
       .get<HistoricalWeather>(this.URL_HISTORICAL, { params })
       .pipe(first());
   }
+
+  // MÉTODO 7 — PRONÓSTICO HISTÓRICO
+
+getHistoricalForecast(
+  city: City,
+  startDate: string,
+  endDate: string
+): Observable<HistoricalForecast> {
+
+  const params = new HttpParams()
+    .set('latitude', city.latitude)
+    .set('longitude', city.longitude)
+    .set('start_date', startDate)
+    .set('end_date', endDate)
+    .set(
+      'hourly',
+      'temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m'
+    )
+    .set('timezone', 'auto');
+
+  return this.http
+    .get<HistoricalForecast>(
+      this.URL_HISTORICAL_FORECAST,
+      { params }
+    )
+    .pipe(first());
+}
+
+
+// MÉTODO 8 — ECMWF
+
+getECMWF(
+  city: City
+): Observable<ECMWFWeather> {
+
+  const params = new HttpParams()
+    .set('latitude', city.latitude)
+    .set('longitude', city.longitude)
+    .set(
+      'hourly',
+      'temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m'
+    )
+    .set('forecast_days', '10')
+    .set('timezone', 'auto');
+
+  return this.http
+    .get<ECMWFWeather>(
+      this.URL_ECMWF,
+      { params }
+    )
+    .pipe(first());
+}
 }

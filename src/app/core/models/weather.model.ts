@@ -72,3 +72,57 @@ export interface HistoricalWeather {
     wind_speed_10m_max?: number[];
   };
 }
+
+// MÉTODO 7 — PRONÓSTICO HISTÓRICO
+
+export interface HistoricalForecast {
+  latitude?: number;
+  longitude?: number;
+  elevation?: number;
+  timezone?: string;
+
+  hourly: {
+    time: string[];
+    temperature_2m?: number[];
+    relative_humidity_2m?: number[];
+    precipitation?: number[];
+    weather_code?: number[];
+    wind_speed_10m?: number[];
+    wind_direction_10m?: number[];
+  };
+
+  hourly_units?: {
+    temperature_2m?: string;
+    relative_humidity_2m?: string;
+    precipitation?: string;
+    wind_speed_10m?: string;
+    wind_direction_10m?: string;
+  };
+}
+
+// MÉTODO 8 — ECMWF
+
+export interface ECMWFWeather {
+  latitude?: number;
+  longitude?: number;
+  elevation?: number;
+  timezone?: string;
+
+  hourly: {
+    time: string[];
+    temperature_2m?: number[];
+    relative_humidity_2m?: number[];
+    precipitation?: number[];
+    weather_code?: number[];
+    wind_speed_10m?: number[];
+    wind_direction_10m?: number[];
+  };
+
+  hourly_units?: {
+    temperature_2m?: string;
+    relative_humidity_2m?: string;
+    precipitation?: string;
+    wind_speed_10m?: string;
+    wind_direction_10m?: string;
+  };
+}
