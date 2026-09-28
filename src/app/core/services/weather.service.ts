@@ -1,7 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-
 import { Injectable, inject } from '@angular/core';
-
 import { first, map, Observable } from 'rxjs';
 
 import { City } from '../models/city.model';
@@ -19,11 +17,15 @@ import {
 } from '../models/weather.model';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class WeatherService {
 
   private readonly http = inject(HttpClient);
+
+  // ============================================================
+  // URLS
+  // ============================================================
 
   private readonly URL_GEOCODING =
     'https://geocoding-api.open-meteo.com/v1/search';
@@ -49,12 +51,19 @@ export class WeatherService {
   private readonly URL_ECMWF =
     'https://api.open-meteo.com/v1/ecmwf';
 
+  private readonly URL_PREVIOUS_RUNS =
+    'https://previous-runs-api.open-meteo.com/v1/forecast';
+
+  private readonly URL_SINGLE_RUN =
+    'https://single-runs-api.open-meteo.com/v1/forecast';
 
   // ============================================================
-  // MÉTODO 1: CIUDADES
+  // MÉTODO 1 — CIUDADES
   // ============================================================
 
-  getCities(name: string): Observable<City[]> {
+  getCities(
+    name: string
+  ): Observable<City[]> {
 
     const params = new HttpParams()
       .set('name', name)
@@ -73,9 +82,8 @@ export class WeatherService {
       );
   }
 
-
   // ============================================================
-  // MÉTODO 2: CLIMA ACTUAL
+  // MÉTODO 2 — CLIMA ACTUAL
   // ============================================================
 
   getCurrentWeather(
@@ -88,41 +96,68 @@ export class WeatherService {
       .set('longitude', lon)
       .set(
         'current',
-        'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m,is_day'
+        [
+          'temperature_2m',
+          'apparent_temperature',
+          'relative_humidity_2m',
+          'precipitation',
+          'weather_code',
+          'wind_speed_10m',
+          'wind_direction_10m',
+          'is_day'
+        ].join(',')
       )
       .set('timezone', 'auto');
 
     return this.http
-      .get(this.URL_FORECAST, { params })
+      .get<any>(
+        this.URL_FORECAST,
+        { params }
+      )
       .pipe(
         first(),
-        map((data: any) => this.parseCurrentWeather(data))
+        map(data => this.parseCurrentWeather(data))
       );
   }
-
 
   private parseCurrentWeather(
     data: any
   ): CurrentWeather {
 
-    const current = data['current'];
+    const current = data.current;
 
     return {
-      time: current['time'],
-      temperature: current['temperature_2m'],
-      apparentTemperature: current['apparent_temperature'],
-      humidity: current['relative_humidity_2m'],
-      precipitation: current['precipitation'],
-      weatherCode: current['weather_code'],
-      windSpeed: current['wind_speed_10m'],
-      windDirection: current['wind_direction_10m'],
-      isDay: current['is_day'] === 1
+
+      time: current.time,
+
+      temperature:
+        current.temperature_2m,
+
+      apparentTemperature:
+        current.apparent_temperature,
+
+      humidity:
+        current.relative_humidity_2m,
+
+      precipitation:
+        current.precipitation,
+
+      weatherCode:
+        current.weather_code,
+
+      windSpeed:
+        current.wind_speed_10m,
+
+      windDirection:
+        current.wind_direction_10m,
+
+      isDay:
+        current.is_day === 1
     };
   }
 
-
   // ============================================================
-  // MÉTODO 3: CALIDAD DEL AIRE
+  // MÉTODO 3 — CALIDAD DEL AIRE
   // ============================================================
 
   getAirQuality(
@@ -133,35 +168,47 @@ export class WeatherService {
     const params = new HttpParams()
       .set('latitude', lat)
       .set('longitude', lon)
-      .set('current', 'pm2_5,pm10,european_aqi')
+      .set(
+        'current',
+        'pm2_5,pm10,european_aqi'
+      )
       .set('timezone', 'auto');
 
     return this.http
-      .get(this.URL_AIR_QUALITY, { params })
+      .get<any>(
+        this.URL_AIR_QUALITY,
+        { params }
+      )
       .pipe(
         first(),
-        map((data: any) => this.parseAirQuality(data))
+        map(data => this.parseAirQuality(data))
       );
   }
-
 
   private parseAirQuality(
     data: any
   ): AirQuality {
 
-    const current = data['current'];
+    const current = data.current;
 
     return {
-      time: current['time'],
-      pm2_5: current['pm2_5'],
-      pm10: current['pm10'],
-      europeanAqi: current['european_aqi']
+
+      time:
+        current.time,
+
+      pm2_5:
+        current.pm2_5,
+
+      pm10:
+        current.pm10,
+
+      europeanAqi:
+        current.european_aqi
     };
   }
 
-
   // ============================================================
-  // MÉTODO 4: ELEVACIÓN
+  // MÉTODO 4 — ELEVACIÓN
   // ============================================================
 
   getElevation(
@@ -180,9 +227,8 @@ export class WeatherService {
       .pipe(first());
   }
 
-
   // ============================================================
-  // MÉTODO 5: INFORMACIÓN MARINA
+  // MÉTODO 5 — INFORMACIÓN MARINA
   // ============================================================
 
   getMarineWeather(
@@ -206,9 +252,8 @@ export class WeatherService {
       .pipe(first());
   }
 
-
   // ============================================================
-  // MÉTODO 6: CLIMA HISTÓRICO
+  // MÉTODO 6 — CLIMA HISTÓRICO
   // ============================================================
 
   getHistoricalWeather(
@@ -224,7 +269,12 @@ export class WeatherService {
       .set('end_date', endDate)
       .set(
         'daily',
-        'temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max'
+        [
+          'temperature_2m_max',
+          'temperature_2m_min',
+          'precipitation_sum',
+          'wind_speed_10m_max'
+        ].join(',')
       )
       .set('timezone', 'auto');
 
@@ -236,9 +286,8 @@ export class WeatherService {
       .pipe(first());
   }
 
-
   // ============================================================
-  // MÉTODO 7: PRONÓSTICO HISTÓRICO
+  // MÉTODO 7 — PRONÓSTICO HISTÓRICO
   // ============================================================
 
   getHistoricalForecast(
@@ -254,7 +303,14 @@ export class WeatherService {
       .set('end_date', endDate)
       .set(
         'hourly',
-        'temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m'
+        [
+          'temperature_2m',
+          'relative_humidity_2m',
+          'precipitation',
+          'weather_code',
+          'wind_speed_10m',
+          'wind_direction_10m'
+        ].join(',')
       )
       .set('timezone', 'auto');
 
@@ -266,9 +322,8 @@ export class WeatherService {
       .pipe(first());
   }
 
-
   // ============================================================
-  // MÉTODO 8: ECMWF
+  // MÉTODO 8 — ECMWF
   // ============================================================
 
   getECMWF(
@@ -280,7 +335,14 @@ export class WeatherService {
       .set('longitude', city.longitude)
       .set(
         'hourly',
-        'temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m'
+        [
+          'temperature_2m',
+          'relative_humidity_2m',
+          'precipitation',
+          'weather_code',
+          'wind_speed_10m',
+          'wind_direction_10m'
+        ].join(',')
       )
       .set('forecast_days', '10')
       .set('timezone', 'auto');
@@ -293,9 +355,8 @@ export class WeatherService {
       .pipe(first());
   }
 
-
   // ============================================================
-  // CAROL — MÉTODO 9: EJECUCIONES ANTERIORES
+  // MÉTODO 9 — PREVIOUS RUNS
   // ============================================================
 
   getPreviousRuns(
@@ -303,18 +364,25 @@ export class WeatherService {
     lon: number
   ): Observable<PreviousRunsData> {
 
-    const url =
-      `https://previous-runs-api.open-meteo.com/v1/forecast` +
-      `?latitude=${lat}` +
-      `&longitude=${lon}` +
-      `&hourly=temperature_2m,precipitation,wind_speed_10m`;
+    const params = new HttpParams()
+      .set('latitude', lat)
+      .set('longitude', lon)
+      .set(
+        'hourly',
+        'temperature_2m,precipitation,wind_speed_10m'
+      )
+      .set('timezone', 'auto');
 
-    return this.http.get<PreviousRunsData>(url);
+    return this.http
+      .get<PreviousRunsData>(
+        this.URL_PREVIOUS_RUNS,
+        { params }
+      )
+      .pipe(first());
   }
 
-
   // ============================================================
-  // CAROL — MÉTODO 10: EJECUCIÓN ÚNICA
+  // MÉTODO 10 — SINGLE RUN
   // ============================================================
 
   getSingleRun(
@@ -323,14 +391,21 @@ export class WeatherService {
     runDate: string
   ): Observable<SingleRunData> {
 
-    const url =
-      `https://single-runs-api.open-meteo.com/v1/forecast` +
-      `?latitude=${lat}` +
-      `&longitude=${lon}` +
-      `&run=${runDate}` +
-      `&hourly=temperature_2m,precipitation,wind_speed_10m`;
+    const params = new HttpParams()
+      .set('latitude', lat)
+      .set('longitude', lon)
+      .set('run', runDate)
+      .set(
+        'hourly',
+        'temperature_2m,precipitation,wind_speed_10m'
+      )
+      .set('timezone', 'auto');
 
-    return this.http.get<SingleRunData>(url);
+    return this.http
+      .get<SingleRunData>(
+        this.URL_SINGLE_RUN,
+        { params }
+      )
+      .pipe(first());
   }
-
 }

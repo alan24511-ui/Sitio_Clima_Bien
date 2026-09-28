@@ -5,7 +5,6 @@ import { RouterOutlet } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { WeatherService } from './core/services/weather.service';
-
 import { City } from './core/models/city.model';
 
 import {
@@ -27,11 +26,10 @@ export class App {
   private cdr = inject(ChangeDetectorRef);
 
   // ============================================================
-  // ALAN: MÉTODOS 1-3
+  // ALAN — MÉTODOS 1-3
   // ============================================================
 
   alanCityName = 'Monterrey';
-
   alanCity?: City;
   alanWeather?: CurrentWeather;
   alanAir?: AirQuality;
@@ -39,87 +37,11 @@ export class App {
   alanLoading = false;
   alanError = '';
 
-  searchAlan() {
-
-    this.alanLoading = true;
-    this.alanError = '';
-
-    this.alanCity = undefined;
-    this.alanWeather = undefined;
-    this.alanAir = undefined;
-
-    this.weather.getCities(this.alanCityName).subscribe({
-
-      next: cities => {
-
-        if (!cities.length) {
-
-          this.alanError = 'Ciudad no encontrada';
-          this.alanLoading = false;
-
-          this.cdr.detectChanges();
-
-          return;
-        }
-
-        this.alanCity = cities[0];
-
-        forkJoin({
-
-          weather: this.weather.getCurrentWeather(
-            this.alanCity.latitude,
-            this.alanCity.longitude
-          ),
-
-          air: this.weather.getAirQuality(
-            this.alanCity.latitude,
-            this.alanCity.longitude
-          )
-
-        }).subscribe({
-
-          next: result => {
-
-            this.alanWeather = result.weather;
-            this.alanAir = result.air;
-
-            this.alanLoading = false;
-
-            this.cdr.detectChanges();
-          },
-
-          error: () => {
-
-            this.alanError =
-              'Error al obtener el clima o la calidad del aire';
-
-            this.alanLoading = false;
-
-            this.cdr.detectChanges();
-          }
-
-        });
-      },
-
-      error: () => {
-
-        this.alanError = 'Error al buscar la ciudad';
-
-        this.alanLoading = false;
-
-        this.cdr.detectChanges();
-      }
-
-    });
-  }
-
-
   // ============================================================
-  // CHATO: MÉTODOS 4-6
+  // CHATO — MÉTODOS 4-6
   // ============================================================
 
   chatoCityName = 'Monterrey';
-
   chatoCity: City | null = null;
 
   chatoLoading = false;
@@ -131,37 +53,176 @@ export class App {
   startDate = '2026-09-15';
   endDate = '2026-09-20';
 
+  // ============================================================
+  // KARLA — MÉTODOS 7-8
+  // ============================================================
 
-  searchChato() {
+  cityName = 'Monterrey';
+  city: City | null = null;
 
-    if (!this.chatoCityName.trim()) {
+  loading = false;
+
+  historicalForecast: any = null;
+  ecmwf: any = null;
+
+  // ============================================================
+  // CAROL — MÉTODOS 9-10
+  // ============================================================
+
+  runDate = '2026-09-20T00:00';
+
+  previousRunsData?: PreviousRunsData;
+  singleRunData?: SingleRunData;
+
+  // ============================================================
+  // BÚSQUEDA PRINCIPAL
+  // MÉTODOS 1-10
+  // ============================================================
+
+  searchAlan() {
+
+    const name = this.alanCityName.trim();
+
+    if (!name) {
+      this.alanError = 'Escribe el nombre de una ciudad.';
       return;
     }
 
-    this.chatoLoading = true;
+    console.log('Buscando ciudad:', name);
 
-    this.weather.getCities(this.chatoCityName).subscribe({
+    // ==========================================================
+    // ESTADO INICIAL
+    // ==========================================================
+
+    this.alanLoading = true;
+    this.alanError = '';
+
+    this.alanCity = undefined;
+    this.alanWeather = undefined;
+    this.alanAir = undefined;
+
+    // Limpiar ciudad avanzada
+    this.chatoCity = null;
+    this.city = null;
+
+    // Limpiar resultados anteriores
+    this.clearAllAdvancedData();
+
+    // ==========================================================
+    // MÉTODO 1 — BUSCAR CIUDAD
+    // ==========================================================
+
+    this.weather.getCities(name).subscribe({
 
       next: cities => {
 
+        console.log('Ciudades encontradas:', cities);
+
         if (!cities.length) {
 
+          this.alanError = 'Ciudad no encontrada.';
+
+          this.alanLoading = false;
+
           this.chatoCity = null;
+          this.city = null;
 
-          this.clearChatoData();
-
-          this.chatoLoading = false;
+          this.cdr.detectChanges();
 
           return;
         }
 
-        this.chatoCity = cities[0];
+        // ======================================================
+        // SELECCIONAR PRIMERA CIUDAD
+        // ======================================================
 
-        this.clearChatoData();
+        const selectedCity = cities[0];
 
-        this.loadChatoWeather();
+        console.log('Ciudad seleccionada:', selectedCity);
 
-        this.chatoLoading = false;
+        // ======================================================
+        // IMPORTANTE
+        // TODA LA APP UTILIZA LA MISMA CIUDAD
+        // ======================================================
+
+        this.alanCity = selectedCity;
+        this.chatoCity = selectedCity;
+        this.city = selectedCity;
+
+        // ======================================================
+        // MÉTODOS 2 Y 3
+        // CLIMA + CALIDAD DEL AIRE
+        // ======================================================
+
+        forkJoin({
+
+          weather: this.weather.getCurrentWeather(
+            selectedCity.latitude,
+            selectedCity.longitude
+          ),
+
+          air: this.weather.getAirQuality(
+            selectedCity.latitude,
+            selectedCity.longitude
+          )
+
+        }).subscribe({
+
+          next: result => {
+
+            console.log('Método 2 - Clima:', result.weather);
+            console.log('Método 3 - Calidad del aire:', result.air);
+
+            this.alanWeather = result.weather;
+            this.alanAir = result.air;
+
+            this.alanLoading = false;
+
+            this.cdr.detectChanges();
+          },
+
+          error: error => {
+
+            console.error(
+              'Error obteniendo clima o calidad del aire:',
+              error
+            );
+
+            this.alanError =
+              'Error al obtener el clima o la calidad del aire.';
+
+            this.alanLoading = false;
+
+            this.cdr.detectChanges();
+          }
+
+        });
+
+        // ======================================================
+        // MÉTODO 4 — ELEVACIÓN
+        // ======================================================
+
+        this.loadElevation();
+
+        // ======================================================
+        // MÉTODO 5 — MARINE
+        // ======================================================
+
+        this.loadMarineWeather();
+
+        // ======================================================
+        // MÉTODO 9 — PREVIOUS RUNS
+        // ======================================================
+
+        this.loadPreviousRuns();
+
+        // ======================================================
+        // MÉTODO 10 — SINGLE RUN
+        // ======================================================
+
+        this.fetchSingleRun();
+
+        this.cdr.detectChanges();
       },
 
       error: error => {
@@ -171,68 +232,165 @@ export class App {
           error
         );
 
+        this.alanError =
+          'Error al buscar la ciudad.';
+
+        this.alanLoading = false;
+
+        this.alanCity = undefined;
+        this.alanWeather = undefined;
+        this.alanAir = undefined;
+
         this.chatoCity = null;
+        this.city = null;
 
-        this.clearChatoData();
+        this.clearAllAdvancedData();
 
-        this.chatoLoading = false;
+        this.cdr.detectChanges();
       }
 
     });
   }
 
+  // ============================================================
+  // MÉTODO 4 — ELEVACIÓN
+  // ============================================================
 
   loadElevation() {
 
     if (!this.chatoCity) {
+
+      console.error(
+        'No hay ciudad seleccionada para el método 4.'
+      );
+
       return;
     }
+
+    console.log(
+      'Método 4 - Consultando elevación:',
+      this.chatoCity.name
+    );
 
     this.weather.getElevation(this.chatoCity).subscribe({
 
       next: data => {
+
+        console.log(
+          'Método 4 - Datos recibidos:',
+          data
+        );
+
         this.elevation = data;
+
+        this.cdr.detectChanges();
       },
 
       error: error => {
+
         console.error(
-          'Error en elevación:',
+          'Error en método 4 - Elevación:',
           error
         );
+
+        this.elevation = null;
+
+        this.cdr.detectChanges();
       }
 
     });
   }
 
+  // ============================================================
+  // MÉTODO 5 — INFORMACIÓN MARINA
+  // ============================================================
 
   loadMarineWeather() {
 
     if (!this.chatoCity) {
+
+      console.error(
+        'No hay ciudad seleccionada para el método 5.'
+      );
+
       return;
     }
+
+    console.log(
+      'Método 5 - Consultando información marina:',
+      this.chatoCity.name
+    );
 
     this.weather.getMarineWeather(this.chatoCity).subscribe({
 
       next: data => {
+
+        console.log(
+          'Método 5 - Datos recibidos:',
+          data
+        );
+
         this.marine = data;
+
+        this.cdr.detectChanges();
       },
 
       error: error => {
+
         console.error(
-          'Error en información marina:',
+          'Error en método 5 - Marine:',
           error
         );
+
+        this.marine = null;
+
+        this.cdr.detectChanges();
       }
 
     });
   }
 
+  // ============================================================
+  // MÉTODO 6 — CLIMA HISTÓRICO
+  // ============================================================
 
   loadHistorical() {
 
     if (!this.chatoCity) {
+
+      console.error(
+        'No hay ciudad seleccionada para el método 6.'
+      );
+
       return;
     }
+
+    if (!this.startDate || !this.endDate) {
+
+      console.error(
+        'Debes seleccionar ambas fechas.'
+      );
+
+      return;
+    }
+
+    if (this.startDate > this.endDate) {
+
+      console.error(
+        'La fecha inicial no puede ser mayor que la fecha final.'
+      );
+
+      return;
+    }
+
+    console.log(
+      'Método 6 - Consultando:',
+      this.chatoCity.name,
+      this.startDate,
+      this.endDate
+    );
+
+    this.historical = null;
 
     this.weather.getHistoricalWeather(
       this.chatoCity,
@@ -241,33 +399,41 @@ export class App {
     ).subscribe({
 
       next: data => {
+
+        console.log(
+          'Método 6 - Datos recibidos:',
+          data
+        );
+
         this.historical = data;
+
+        this.cdr.detectChanges();
       },
 
       error: error => {
+
         console.error(
-          'Error en clima histórico:',
+          'Error en método 6 - Clima histórico:',
           error
         );
+
+        this.historical = null;
+
+        this.cdr.detectChanges();
       }
 
     });
   }
 
-
-  loadChatoWeather() {
-
-    this.loadElevation();
-
-    this.loadMarineWeather();
-  }
-
+  // ============================================================
+  // MÉTODO 6 — FORMATEAR DÍAS
+  // ============================================================
 
   getHistoricalDays() {
 
     const d = this.historical?.daily;
 
-    if (!d) {
+    if (!d || !d.time) {
       return [];
     }
 
@@ -276,77 +442,386 @@ export class App {
 
         date,
 
-        max: d.temperature_2m_max?.[i],
+        max:
+          d.temperature_2m_max?.[i],
 
-        min: d.temperature_2m_min?.[i],
+        min:
+          d.temperature_2m_min?.[i],
 
-        precipitation: d.precipitation_sum?.[i],
+        precipitation:
+          d.precipitation_sum?.[i],
 
-        wind: d.wind_speed_10m_max?.[i]
+        wind:
+          d.wind_speed_10m_max?.[i]
 
       })
     );
   }
 
+  // ============================================================
+  // MÉTODO 7 — PRONÓSTICO HISTÓRICO
+  // ============================================================
+
+  loadHistoricalForecast() {
+
+    if (!this.chatoCity) {
+
+      console.error(
+        'No hay ciudad seleccionada para el método 7.'
+      );
+
+      return;
+    }
+
+    if (!this.startDate || !this.endDate) {
+
+      console.error(
+        'Debes seleccionar ambas fechas.'
+      );
+
+      return;
+    }
+
+    if (this.startDate > this.endDate) {
+
+      console.error(
+        'La fecha inicial no puede ser mayor que la fecha final.'
+      );
+
+      return;
+    }
+
+    console.log(
+      'Método 7 - Consultando:',
+      this.chatoCity.name,
+      this.startDate,
+      this.endDate
+    );
+
+    this.historicalForecast = null;
+
+    this.weather.getHistoricalForecast(
+      this.chatoCity,
+      this.startDate,
+      this.endDate
+    ).subscribe({
+
+      next: data => {
+
+        console.log(
+          'Método 7 - Datos recibidos:',
+          data
+        );
+
+        this.historicalForecast = data;
+
+        this.cdr.detectChanges();
+      },
+
+      error: error => {
+
+        console.error(
+          'Error en método 7 - Pronóstico histórico:',
+          error
+        );
+
+        this.historicalForecast = null;
+
+        this.cdr.detectChanges();
+      }
+
+    });
+  }
 
   // ============================================================
-  // KARLA: MÉTODOS 7-8
+  // MÉTODO 7 — FORMATEAR HORAS
   // ============================================================
 
-  cityName = 'Monterrey';
+  getHistoricalForecastHours() {
 
-  city: City | null = null;
+    const h = this.historicalForecast?.hourly;
 
-  loading = false;
+    if (!h || !h.time) {
+      return [];
+    }
 
-  historicalForecast: any = null;
+    return h.time.map(
+      (time: string, i: number) => ({
 
-  ecmwf: any = null;
+        time,
 
+        temperature:
+          h.temperature_2m?.[i],
+
+        humidity:
+          h.relative_humidity_2m?.[i],
+
+        precipitation:
+          h.precipitation?.[i],
+
+        weatherCode:
+          h.weather_code?.[i],
+
+        wind:
+          h.wind_speed_10m?.[i],
+
+        windDirection:
+          h.wind_direction_10m?.[i]
+
+      })
+    );
+  }
+
+  // ============================================================
+  // MÉTODO 8 — ECMWF
+  // ============================================================
+
+  loadECMWF() {
+
+    if (!this.chatoCity) {
+
+      console.error(
+        'No hay ciudad seleccionada para el método 8.'
+      );
+
+      return;
+    }
+
+    console.log(
+      'Método 8 - Consultando ECMWF:',
+      this.chatoCity.name
+    );
+
+    this.ecmwf = null;
+
+    this.weather.getECMWF(
+      this.chatoCity
+    ).subscribe({
+
+      next: data => {
+
+        console.log(
+          'Método 8 - Datos recibidos:',
+          data
+        );
+
+        this.ecmwf = data;
+
+        this.cdr.detectChanges();
+      },
+
+      error: error => {
+
+        console.error(
+          'Error en método 8 - ECMWF:',
+          error
+        );
+
+        this.ecmwf = null;
+
+        this.cdr.detectChanges();
+      }
+
+    });
+  }
+
+  // ============================================================
+  // MÉTODO 8 — FORMATEAR HORAS ECMWF
+  // ============================================================
+
+  getECMWFHours() {
+
+    const h = this.ecmwf?.hourly;
+
+    if (!h || !h.time) {
+      return [];
+    }
+
+    return h.time.map(
+      (time: string, i: number) => ({
+
+        time,
+
+        temperature:
+          h.temperature_2m?.[i],
+
+        humidity:
+          h.relative_humidity_2m?.[i],
+
+        precipitation:
+          h.precipitation?.[i],
+
+        weatherCode:
+          h.weather_code?.[i],
+
+        wind:
+          h.wind_speed_10m?.[i],
+
+        windDirection:
+          h.wind_direction_10m?.[i]
+
+      })
+    );
+  }
+
+  // ============================================================
+  // MÉTODO 9 — PREVIOUS RUNS
+  // ============================================================
+
+  loadPreviousRuns() {
+
+    if (!this.chatoCity) {
+
+      console.error(
+        'No hay ciudad seleccionada para el método 9.'
+      );
+
+      return;
+    }
+
+    console.log(
+      'Método 9 - Consultando Previous Runs:',
+      this.chatoCity.name
+    );
+
+    this.previousRunsData = undefined;
+
+    this.weather.getPreviousRuns(
+      this.chatoCity.latitude,
+      this.chatoCity.longitude
+    ).subscribe({
+
+      next: data => {
+
+        console.log(
+          'Método 9 - Datos recibidos:',
+          data
+        );
+
+        this.previousRunsData = data;
+
+        this.cdr.detectChanges();
+      },
+
+      error: error => {
+
+        console.error(
+          'Error en método 9 - Previous Runs:',
+          error
+        );
+
+        this.previousRunsData = undefined;
+
+        this.cdr.detectChanges();
+      }
+
+    });
+  }
+
+  // ============================================================
+  // MÉTODO 10 — SINGLE RUN
+  // ============================================================
+
+  fetchSingleRun() {
+
+    if (!this.chatoCity) {
+
+      console.error(
+        'No hay ciudad seleccionada para el método 10.'
+      );
+
+      return;
+    }
+
+    if (!this.runDate) {
+
+      console.error(
+        'Debes indicar una fecha para el método 10.'
+      );
+
+      return;
+    }
+
+    console.log(
+      'Método 10 - Consultando Single Run:',
+      this.chatoCity.name,
+      this.runDate
+    );
+
+    this.singleRunData = undefined;
+
+    this.weather.getSingleRun(
+      this.chatoCity.latitude,
+      this.chatoCity.longitude,
+      this.runDate
+    ).subscribe({
+
+      next: data => {
+
+        console.log(
+          'Método 10 - Datos recibidos:',
+          data
+        );
+
+        this.singleRunData = data;
+
+        this.cdr.detectChanges();
+      },
+
+      error: error => {
+
+        console.error(
+          'Error en método 10 - Single Run:',
+          error
+        );
+
+        this.singleRunData = undefined;
+
+        this.cdr.detectChanges();
+      }
+
+    });
+  }
+
+  // ============================================================
+  // SEARCH CITY — COMPATIBILIDAD
+  // ============================================================
 
   searchCity() {
 
-    if (!this.cityName.trim()) {
+    const name = this.cityName.trim();
+
+    if (!name) {
       return;
     }
 
     this.loading = true;
 
-    this.weather.getCities(this.cityName).subscribe({
+    this.weather.getCities(name).subscribe({
 
       next: cities => {
 
         if (!cities.length) {
 
-          this.clearKarlaData();
+          this.city = null;
+          this.chatoCity = null;
+
+          this.clearAllAdvancedData();
 
           this.loading = false;
+
+          this.cdr.detectChanges();
 
           return;
         }
 
         this.city = cities[0];
+        this.chatoCity = cities[0];
 
-        // =====================================================
-        // KARLA
-        // =====================================================
-
-        this.clearKarlaData();
-
-        // Importante:
-        // clearKarlaData pone city en null,
-        // por eso volvemos a asignar la ciudad.
-        this.city = cities[0];
+        this.clearAdvancedResults();
 
         this.loadECMWF();
-
-        // =====================================================
-        // CAROL
-        // Nuevos métodos agregados sin quitar lo de main
-        // =====================================================
-
         this.loadPreviousRuns();
-
         this.fetchSingleRun();
 
         this.loading = false;
@@ -361,7 +836,10 @@ export class App {
           error
         );
 
-        this.clearKarlaData();
+        this.city = null;
+        this.chatoCity = null;
+
+        this.clearAllAdvancedData();
 
         this.loading = false;
 
@@ -371,222 +849,31 @@ export class App {
     });
   }
 
-
-  loadHistoricalForecast() {
-
-    if (!this.city) {
-      return;
-    }
-
-    this.weather.getHistoricalForecast(
-      this.city,
-      this.startDate,
-      this.endDate
-    ).subscribe({
-
-      next: data => {
-        this.historicalForecast = data;
-      },
-
-      error: error => {
-
-        console.error(
-          'Error en pronóstico histórico:',
-          error
-        );
-
-      }
-
-    });
-  }
-
-
-  loadECMWF() {
-
-    if (!this.city) {
-      return;
-    }
-
-    this.weather.getECMWF(this.city).subscribe({
-
-      next: data => {
-        this.ecmwf = data;
-      },
-
-      error: error => {
-
-        console.error(
-          'Error en ECMWF:',
-          error
-        );
-
-      }
-
-    });
-  }
-
-
-  getHistoricalForecastHours() {
-
-    const h = this.historicalForecast?.hourly;
-
-    if (!h) {
-      return [];
-    }
-
-    return h.time.map(
-      (time: string, i: number) => ({
-
-        time,
-
-        temperature: h.temperature_2m?.[i],
-
-        humidity: h.relative_humidity_2m?.[i],
-
-        precipitation: h.precipitation?.[i],
-
-        weatherCode: h.weather_code?.[i],
-
-        wind: h.wind_speed_10m?.[i],
-
-        windDirection: h.wind_direction_10m?.[i]
-
-      })
-    );
-  }
-
-
-  getECMWFHours() {
-
-    const h = this.ecmwf?.hourly;
-
-    if (!h) {
-      return [];
-    }
-
-    return h.time.map(
-      (time: string, i: number) => ({
-
-        time,
-
-        temperature: h.temperature_2m?.[i],
-
-        humidity: h.relative_humidity_2m?.[i],
-
-        precipitation: h.precipitation?.[i],
-
-        weatherCode: h.weather_code?.[i],
-
-        wind: h.wind_speed_10m?.[i],
-
-        windDirection: h.wind_direction_10m?.[i]
-
-      })
-    );
-  }
-
-
   // ============================================================
-  // CAROL: MÉTODOS NUEVOS
+  // LIMPIAR RESULTADOS
   // ============================================================
 
-  runDate = '2026-09-20T00:00';
-
-  previousRunsData?: PreviousRunsData;
-
-  singleRunData?: SingleRunData;
-
-
-  loadPreviousRuns() {
-
-    if (!this.city) {
-      return;
-    }
-
-    this.weather
-      .getPreviousRuns(
-        this.city.latitude,
-        this.city.longitude
-      )
-      .subscribe({
-
-        next: data => {
-
-          this.previousRunsData = data;
-
-          this.cdr.detectChanges();
-        },
-
-        error: error => {
-
-          console.error(
-            'Error en getPreviousRuns:',
-            error
-          );
-
-        }
-
-      });
-  }
-
-
-  fetchSingleRun() {
-
-    if (!this.city) {
-      return;
-    }
-
-    this.weather
-      .getSingleRun(
-        this.city.latitude,
-        this.city.longitude,
-        this.runDate
-      )
-      .subscribe({
-
-        next: data => {
-
-          this.singleRunData = data;
-
-          this.cdr.detectChanges();
-        },
-
-        error: error => {
-
-          console.error(
-            'Error en getSingleRun:',
-            error
-          );
-
-        }
-
-      });
-  }
-
-
-  // ============================================================
-  // LIMPIEZA DE DATOS
-  // ============================================================
-
-  private clearChatoData() {
+  private clearAdvancedResults() {
 
     this.elevation = null;
-
     this.marine = null;
-
     this.historical = null;
-  }
-
-
-  private clearKarlaData() {
-
     this.historicalForecast = null;
-
     this.ecmwf = null;
 
     this.previousRunsData = undefined;
-
     this.singleRunData = undefined;
   }
 
+  private clearAllAdvancedData() {
+
+    this.elevation = null;
+    this.marine = null;
+    this.historical = null;
+    this.historicalForecast = null;
+    this.ecmwf = null;
+
+    this.previousRunsData = undefined;
+    this.singleRunData = undefined;
+  }
 }
