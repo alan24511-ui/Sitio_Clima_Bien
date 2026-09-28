@@ -1,20 +1,20 @@
 export interface CurrentWeather {
-    time: string;
-    temperature: number;
-    apparentTemperature: number;
-    humidity: number;
-    precipitation: number;
-    weatherCode: number;
-    windSpeed: number;
-    windDirection: number;
-    isDay: boolean;
+  time: string;
+  temperature: number;
+  apparentTemperature: number;
+  humidity: number;
+  precipitation: number;
+  weatherCode: number;
+  windSpeed: number;
+  windDirection: number;
+  isDay: boolean;
 }
 
 export interface AirQuality {
-    time: string;
-    pm2_5: number;
-    pm10: number;
-    europeanAqi: number;
+  time: string;
+  pm2_5: number;
+  pm10: number;
+  europeanAqi: number;
 }
 
 export interface Elevation {
@@ -124,5 +124,33 @@ export interface ECMWFWeather {
     precipitation?: string;
     wind_speed_10m?: string;
     wind_direction_10m?: string;
+  };
+}
+
+// CAROL — MÉTODO: PREVIOUS RUNS
+
+export interface PreviousRunsData {
+  latitude: number;
+  longitude: number;
+
+  hourly: {
+    time: string[];
+    temperature_2m: number[];
+    precipitation: number[];
+    wind_speed_10m: number[];
+  };
+}
+
+// CAROL — MÉTODO: SINGLE RUN
+
+export interface SingleRunData {
+  latitude: number;
+  longitude: number;
+
+  hourly: {
+    time: string[];
+    temperature_2m: number[];
+    precipitation: number[];
+    wind_speed_10m: number[];
   };
 }
